@@ -12,13 +12,14 @@ app.get('/', function(req, res) {
 var players;
 
 io.on('connection', function (socket) {
-	console.log('Socket Connected', socket.id);
+	console.log('---> connection', socket.id);
 
 	var player = null;
 	var server = null;
 	var snakeId = null;
 
 	socket.on('started-playing', function (params) {
+		console.log('---> started-playing', params);
 		player = params['player'];
 		server = params['server'];
 		snakeId = params['snakeId'];
@@ -31,12 +32,13 @@ io.on('connection', function (socket) {
 		console.log(player, 'started playing on', server, 'as socket', socket.id)
 
 		io.sockets.in(server).emit('player-joined', player);
-		socket.join(server);
+		this.join(server);
 	});
 
 	socket.on('stopped-playing', function () {
+		console.log('---> stopped-playing');
 		console.log(player, 'stopped playing on', server, 'as socket', socket.id);
-		socket.leave(server, null);
+		this.leave(server, null);
 		io.sockets.in(server).emit('player-left', player);
 		delete players[server][snakeId];
 		player = null;
@@ -45,10 +47,12 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('player-update', function (params) {
+		console.log('---> player-update', params);
 		players[snakeId]['position'] = params['position'];
 	});
 
 	socket.on('disconnect', function () {
+		console.log('---> disconnect')
 		console.log(player, 'disconnected as socket', socket.id);
 		io.sockets.in(server).emit('player-left', player);
 	});
