@@ -1,3 +1,11 @@
+// ==UserScript==
+// @name		slither-friends
+// @namespace	https://slither-friends.csharman.co.uk
+// @version		0.0.1
+// @description Slither with friends!
+// @match		slither.io
+// @copyright	csharman.co.uk
+// ==/UserScript
 (function() {
 
 	var socket = io('https://slither-friends.csharman.co.uk');
@@ -37,6 +45,7 @@
 			snakeName = snake.nk;
 
 			socket.emit('started-playing', {
+				server: currServ,
 				player: snakeName,
 				snakeId: snakeId,
 				position: {
@@ -53,15 +62,6 @@
 			snakeExists = false;
 			snakeName = null;
 		}
-	}
-
-	function playSlither() {
-		var player = document.getElementById('username').value;
-
-		socket.emit('started-playing', {
-			player: player,
-			server: currServ
-		});
 	}
 
 	function playerJoined(player) {
