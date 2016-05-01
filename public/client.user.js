@@ -43,7 +43,7 @@
 	}
 
 	function checkSnake() {
-		if (!snakeExists && typeof snake === 'object') {
+		if (!snakeExists && snake !== null) {
 			console.log("SLITHER FRIENDS: Snake Born!");
 
 			snakeReporter = setInterval(reportLocation, 1000);
@@ -62,7 +62,7 @@
 				}
 			});
 		}
-		if (snakeExists && typeof snake === 'undefined') {
+		if (snakeExists && snake === null) {
 			console.log("SLITHER FRIENDS: Snake Dead :(");
 
 			clearTimeout(snakeReporter);
