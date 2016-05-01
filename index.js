@@ -5,7 +5,6 @@ var io = new require('socket.io')(http);
 
 app.use(express.static('public'));
 
-//app.UseCors(CorsOptions.AllowAll);
 app.get('/', function(req, res) {
 	res.sendFile(__dirname + '/pages/index.html');
 });
@@ -14,11 +13,25 @@ var players = {};
 
 setInterval(function() {
 
-	for (var i in players) {
-		if (!players.hasOwnProperty(i)) {
+	var servers = players;
+
+	for (var ip in servers) {
+		if (!servers.hasOwnProperty(ip)) {
 			continue;
 		}
-		console.log(i, players[i]['position']['x'], players[i]['position']['y']);
+
+		console.log('');
+		console.log('Players connected to', ip);
+
+		var server = servers[ip];
+		for (var snakeId in server) {
+			if (!server.hasOwnProperty(snakeId)) {
+				continue;
+			}
+
+			var player = server[snakeId];
+			console.log(player['name']);
+		}
 	}
 
 }, 5000);
@@ -66,6 +79,9 @@ io.on('connection', function (socket) {
 		this.leave(this.custom.server, null);
 		io.sockets.in(this.custom.server).emit('player-left', this.custom.player);
 		delete players[this.custom.server][this.custom.snakeId];
+		if (Object.keys(players[this.custom.server]).length === 0) {
+			delete players[this.custom.server];
+		}
 		socket.custom = {};
 	});
 
