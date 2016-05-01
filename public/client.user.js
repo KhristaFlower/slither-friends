@@ -2,7 +2,7 @@
 // @name		slither-friends
 // @author		Christopher Sharman
 // @namespace	https://slither-friends.csharman.co.uk
-// @version		0.0.3
+// @version		0.0.4
 // @description Slither with friends!
 // @downloadURL https://slither-friends.csharman.co.uk/client.user.js
 // @updateURL	https://slither-friends.csharman.co.uk/client.user.js
@@ -33,8 +33,6 @@
 		}
 
 		socket.emit('player-update', {
-			player: snakeName,
-			snakeId: snake.id,
 			position: {
 				x: snake.xx,
 				y: snake.yy
@@ -46,8 +44,6 @@
 	function checkSnake() {
 		if (!snakeExists && snake !== null) {
 			console.log("SLITHER FRIENDS: Snake Born!");
-
-			snakeReporter = setInterval(reportLocation, 1000);
 
 			snakeExists = true;
 			snakeId = snake.id;
@@ -63,6 +59,12 @@
 					y: snake.yy
 				}
 			});
+
+			setTimeout(function() {
+				// Hold off sending details for a moment.
+				snakeReporter = setInterval(reportLocation, 1000);
+			}, 1000);
+
 		}
 		if (snakeExists && snake === null) {
 			console.log("SLITHER FRIENDS: Snake Dead :(");
