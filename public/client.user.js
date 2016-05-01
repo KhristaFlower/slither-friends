@@ -7,8 +7,8 @@
 // @downloadURL https://slither-friends.csharman.co.uk/client.user.js
 // @updateURL	https://slither-friends.csharman.co.uk/client.user.js
 // @require		https://slither-friends.csharman.co.uk/socket.io/socket.io.js
-// @include		http://slither.io/*
-// @include		https://slither.io/*
+// @include		http://slither.io/
+// @include		https://slither.io/
 // @copyright	csharman.co.uk
 // ==/UserScript==
 (function() {
