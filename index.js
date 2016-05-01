@@ -30,7 +30,7 @@ setInterval(function() {
 			}
 
 			var player = server[snakeId];
-			console.log(player['name']);
+			console.log(player['player']);
 		}
 	}
 
@@ -96,6 +96,10 @@ io.on('connection', function (socket) {
 		console.log('---> disconnect (' + this.custom.player + ')');
 		console.log(this.custom.player, 'disconnected as socket', socket.id);
 		io.sockets.in(this.custom.server).emit('player-left', this.custom.player);
+		delete players[this.custom.server][this.custom.snakeId];
+		if (Object.keys(players[this.custom.server]).length === 0) {
+			delete players[this.custom.server];
+		}
 	});
 
 });
