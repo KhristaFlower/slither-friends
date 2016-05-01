@@ -24,6 +24,7 @@
 	var snakeName = null;
 	var snakeId = null;
 	var snakeReporter = null;
+	var server = null;
 
 	function reportLocation() {
 
@@ -51,9 +52,10 @@
 			snakeExists = true;
 			snakeId = snake.id;
 			snakeName = snake.nk;
+			server = bso.ip + ":" + bso.po;
 
 			socket.emit('started-playing', {
-				server: currServ,
+				server: server,
 				player: snakeName,
 				snakeId: snakeId,
 				position: {
