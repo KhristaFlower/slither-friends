@@ -8,33 +8,10 @@
 
 	<h1>Slither Friends</h1>
 
-	<input type="text" id="username">
-	<button onclick="playSlither();">Connect</button>
-
-	<script src="/socket.io/socket.io.js"></script>
-	<script>
-		var socket = io();
-
-		socket.on('player-joined', playerJoined);
-		socket.on('player-left', playerLeft);
-
-		function playSlither() {
-			var player = document.getElementById('username').value;
-
-			socket.emit('started-playing', {
-				player: player,
-				server: '12.34.56.78:9999'
-			});
-		}
-
-		function playerJoined(player) {
-			console.log('Player', player, 'has joined!');
-		}
-
-		function playerLeft(player) {
-			console.log('Player', player, 'has left.');
-		}
-	</script>
+	<p>
+		Slither Friends is just a proof of concept at the current stage.
+		Even I do not know where it is going to end up.
+	</p>
 
 </body>
 </html>
