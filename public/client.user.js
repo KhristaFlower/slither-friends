@@ -2,9 +2,11 @@
 // @name		slither-friends
 // @author		Christopher Sharman
 // @namespace	https://slither-friends.csharman.co.uk
-// @version		0.0.1
+// @version		0.0.2
 // @description Slither with friends!
 // @downloadURL https://slither-friends.csharman.co.uk/client.user.js
+// @updateURL	https://slither-friends.csharman.co.uk/client.user.js
+// @require		https://slither-friends.csharman.co.uk/socket.io/socket.io.js
 // @include		http://slither.io/*
 // @include		https://slither.io/*
 // @copyright	csharman.co.uk
