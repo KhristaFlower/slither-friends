@@ -19,11 +19,11 @@
 	socket.on('player-left', playerLeft);
 
 	setInterval(checkSnake, 100);
-	setInterval(reportLocation, 1000);
 
 	var snakeExists = false;
 	var snakeName = null;
 	var snakeId = null;
+	var snakeReporter = null;
 
 	function reportLocation() {
 
@@ -46,6 +46,8 @@
 		if (!snakeExists && typeof snake === 'object') {
 			console.log("SLITHER FRIENDS: Snake Born!");
 
+			snakeReporter = setInterval(reportLocation, 1000);
+
 			snakeExists = true;
 			snakeId = snake.id;
 			snakeName = snake.nk;
@@ -62,6 +64,8 @@
 		}
 		if (snakeExists && typeof snake === 'undefined') {
 			console.log("SLITHER FRIENDS: Snake Dead :(");
+
+			clearTimeout(snakeReporter);
 
 			socket.emit('stopped-playing', {
 				player: snakeName,
