@@ -49,8 +49,6 @@ setInterval(function() {
 			playerCount++;
 		}
 
-		console.log('players-connected to', ip, server);
-
 		// Send connected players to the connected players.
 		io.sockets.in(ip).emit('player-locations', server);
 	}
@@ -112,7 +110,6 @@ io.on('connection', function (socket) {
 		if (Object.keys(players[socket.custom.server]).length === 0) {
 			delete players[socket.custom.server];
 		}
-		socket.custom = {};
 	});
 
 	socket.on('player-update', function (params) {
