@@ -11,17 +11,25 @@ app.get('/', function(req, res) {
 
 var players = {};
 
+var config = {
+	printConnectedPlayers: true
+};
+
 setInterval(function() {
+
 
 	var servers = players;
 	var playerCount = 0;
 
-	var date = new Date();
-	var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
-	var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
-	var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+	if (config.printConnectedPlayers) {
 
-	console.log('CONNECTED PLAYERS @ ' + hours + ':' + minutes + ':' + seconds);
+		var date = new Date();
+		var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+		var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+		var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+		console.log('CONNECTED PLAYERS @ ' + hours + ':' + minutes + ':' + seconds);
+	}
 
 	var playersConnected = {};
 
@@ -34,26 +42,33 @@ setInterval(function() {
 			playersConnected[ip] = [];
 		}
 
-		console.log('');
-		console.log('> ', ip);
+		if (config.printConnectedPlayers) {
+			console.log('');
+			console.log('> ', ip);
+		}
 
 		var server = servers[ip];
-		for (var snakeId in server) {
-			if (!server.hasOwnProperty(snakeId)) {
-				continue;
-			}
 
-			var player = server[snakeId];
-			playersConnected[ip].push(player['player']);
-			console.log('    >', player['player']);
-			playerCount++;
+		if (config.printConnectedPlayers) {
+			for (var snakeId in server) {
+				if (!server.hasOwnProperty(snakeId)) {
+					continue;
+				}
+
+				var player = server[snakeId];
+				playersConnected[ip].push(player['player']);
+				console.log('    >', player['player']);
+				playerCount++;
+			}
 		}
 
 		// Send connected players to the connected players.
 		io.sockets.in(ip).emit('player-locations', server);
 	}
 
-	console.log(playerCount === 0 ? 'None!' : playerCount + ' players!');
+	if (config.printConnectedPlayers) {
+		console.log(playerCount === 0 ? 'None!' : playerCount + ' players!');
+	}
 
 	// For players on the main menu we want to show what servers players are in.
 	io.sockets.in('main-menu').emit('players-connected', playersConnected);
@@ -91,6 +106,7 @@ io.on('connection', function (socket) {
 		console.log(player, 'started playing on', server, 'as socket', socket.id)
 
 		io.sockets.in(server).emit('player-joined', player);
+
 		this.leave('main-menu', null);
 		this.join(server);
 
@@ -103,13 +119,18 @@ io.on('connection', function (socket) {
 
 	socket.on('stopped-playing', function () {
 		console.log(socket.custom.player, 'stopped playing on', socket.custom.server, 'as socket', socket.id);
+
 		this.leave(socket.custom.server, null);
 		this.join('main-menu');
+
 		io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
+
 		delete players[socket.custom.server][socket.custom.snakeId];
 		if (Object.keys(players[socket.custom.server]).length === 0) {
 			delete players[socket.custom.server];
 		}
+
+		socket.custom.snakeId = null;
 	});
 
 	socket.on('player-update', function (params) {
