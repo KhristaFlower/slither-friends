@@ -95,10 +95,15 @@ io.on('connection', function (socket) {
 	socket.on('disconnect', function () {
 		console.log('---> disconnect (' + this.custom.player + ')');
 		console.log(socket.custom.player, 'disconnected as socket', socket.id);
-		io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
-		delete players[socket.custom.server][socket.custom.snakeId];
-		if (Object.keys(players[socket.custom.server]).length === 0) {
-			delete players[socket.custom.server];
+
+		// If the player is not playing as a snake then we don't need to do
+		// cleanup and let clients know they've left.
+		if (socket.custom.snakeId !== null) {
+			io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
+			delete players[socket.custom.server][socket.custom.snakeId];
+			if (Object.keys(players[socket.custom.server]).length === 0) {
+				delete players[socket.custom.server];
+			}
 		}
 	});
 
