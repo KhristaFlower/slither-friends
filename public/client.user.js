@@ -2,7 +2,7 @@
 // @name		slither-friends
 // @author		Christopher Sharman
 // @namespace	https://slither-friends.csharman.co.uk
-// @version		0.0.4
+// @version		0.0.5
 // @description Slither with friends!
 // @downloadURL https://slither-friends.csharman.co.uk/client.user.js
 // @updateURL	https://slither-friends.csharman.co.uk/client.user.js
@@ -12,6 +12,17 @@
 // @copyright	csharman.co.uk
 // ==/UserScript==
 (function() {
+
+	var loginPage = document.getElementById('login');
+	var serverList = document.createElement('div');
+	serverList.style.position = 'absolute';
+	serverList.style.top = '50%;';
+	serverList.style.left = '0';
+	serverList.id = 'SlitherFriends-ServerList';
+	serverList.style.fontFamily = 'sans-serif';
+	serverList.style.color = 'white';
+	serverList.style.marginLeft = '10px';
+	loginPage.appendChild(serverList);
 
 	var socket = io('https://slither-friends.csharman.co.uk');
 
@@ -33,7 +44,35 @@
 	}
 
 	function playersConnected(payload) {
-		console.log(payload);
+		var currentIp = (typeof bso !== 'undefined' ? bso.ip + ':' + bso.po : 'None');
+
+		var newServerList = document.createElement('div');
+		var yourServer = document.createElement('div');
+		yourServer.innerHTML = 'Your server: ' + currentIp;
+		newServerList.appendChild(yourServer);
+		for (var ip in payload) {
+			if (!payload.hasOwnProperty(ip)) {
+				continue;
+			}
+			var serverName = document.createElement('div');
+			var serverJoinLink = document.createElement('a');
+			var ipAndPort = ip.split(':');
+			serverName.style.marginTop = '10px';
+			serverJoinLink.style.color = (ip === currentIp ? 'lime' : 'white');
+			serverJoinLink.innerHTML = ip;
+			serverJoinLink.href = 'javascript:forceServer(\'' + ipAndPort[0] + '\',' + ipAndPort[1] + ')';
+			serverName.appendChild(serverJoinLink);
+			newServerList.appendChild(serverName);
+			for (var player in payload[ip]) {
+				var playerName = document.createElement('div');
+				playerName.innerHTML = payload[ip][player];
+				playerName.style.marginLeft = '10px';
+				newServerList.appendChild(playerName);
+			}
+		}
+
+		serverList.innerHTML = '';
+		serverList.appendChild(newServerList);
 	}
 
 	function reportLocation() {
