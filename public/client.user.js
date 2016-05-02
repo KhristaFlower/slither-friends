@@ -17,6 +17,8 @@
 
 	socket.on('player-joined', playerJoined);
 	socket.on('player-left', playerLeft);
+	socket.on('players-connected', playersConnected);
+	socket.on('player-locations', playerLocations);
 
 	setInterval(checkSnake, 100);
 
@@ -25,6 +27,14 @@
 	var snakeId = null;
 	var snakeReporter = null;
 	var server = null;
+
+	function playerLocations(payload) {
+		console.log(payload);
+	}
+
+	function playersConnected(payload) {
+		console.log(payload);
+	}
 
 	function reportLocation() {
 

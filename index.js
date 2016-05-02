@@ -14,14 +14,28 @@ var players = {};
 setInterval(function() {
 
 	var servers = players;
+	var playerCount = 0;
+
+	var date = new Date();
+	var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+	var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+	var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+	console.log('CONNECTED PLAYERS @ ' + hours + ':' + minutes + ':' + seconds);
+
+	var playersConnected = {};
 
 	for (var ip in servers) {
 		if (!servers.hasOwnProperty(ip)) {
 			continue;
 		}
 
+		if (!(ip in playersConnected)) {
+			playersConnected[ip] = [];
+		}
+
 		console.log('');
-		console.log('Players connected to', ip);
+		console.log('> ', ip);
 
 		var server = servers[ip];
 		for (var snakeId in server) {
@@ -30,14 +44,28 @@ setInterval(function() {
 			}
 
 			var player = server[snakeId];
-			console.log(player['player']);
+			playersConnected[ip].push(player['player']);
+			console.log('    >', player['player']);
+			playerCount++;
 		}
+
+		console.log('players-connected to', ip, server);
+
+		// Send connected players to the connected players.
+		io.sockets.in(ip).emit('player-locations', server);
 	}
+
+	console.log(playerCount === 0 ? 'None!' : playerCount + ' players!');
+
+	// For players on the main menu we want to show what servers players are in.
+	io.sockets.in('main-menu').emit('players-connected', playersConnected);
 
 }, 5000);
 
 io.on('connection', function (socket) {
 	console.log('---> connection', socket.id);
+
+	socket.join('main-menu');
 
 	socket.custom = {
 		player: null,
@@ -65,6 +93,7 @@ io.on('connection', function (socket) {
 		console.log(player, 'started playing on', server, 'as socket', socket.id)
 
 		io.sockets.in(server).emit('player-joined', player);
+		this.leave('main-menu', null);
 		this.join(server);
 
 		socket.custom = {
@@ -77,6 +106,7 @@ io.on('connection', function (socket) {
 	socket.on('stopped-playing', function () {
 		console.log(socket.custom.player, 'stopped playing on', socket.custom.server, 'as socket', socket.id);
 		this.leave(socket.custom.server, null);
+		this.join('main-menu');
 		io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
 		delete players[socket.custom.server][socket.custom.snakeId];
 		if (Object.keys(players[socket.custom.server]).length === 0) {
@@ -93,8 +123,7 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('disconnect', function () {
-		console.log('---> disconnect (' + this.custom.player + ')');
-		console.log(socket.custom.player, 'disconnected as socket', socket.id);
+		console.log('---> disconnect (' + socket.id + ')');
 
 		// If the player is not playing as a snake then we don't need to do
 		// cleanup and let clients know they've left.
