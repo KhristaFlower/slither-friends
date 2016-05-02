@@ -75,12 +75,12 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('stopped-playing', function () {
-		console.log(this.custom.player, 'stopped playing on', this.custom.server, 'as socket', socket.id);
-		this.leave(this.custom.server, null);
-		io.sockets.in(this.custom.server).emit('player-left', this.custom.player);
-		delete players[this.custom.server][this.custom.snakeId];
-		if (Object.keys(players[this.custom.server]).length === 0) {
-			delete players[this.custom.server];
+		console.log(socket.custom.player, 'stopped playing on', socket.custom.server, 'as socket', socket.id);
+		this.leave(socket.custom.server, null);
+		io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
+		delete players[socket.custom.server][socket.custom.snakeId];
+		if (Object.keys(players[socket.custom.server]).length === 0) {
+			delete players[socket.custom.server];
 		}
 		socket.custom = {};
 	});
@@ -89,16 +89,16 @@ io.on('connection', function (socket) {
 		if (!(this.custom.snakeId in players)) {
 			return;
 		}
-		players[this.custom.snakeId]['position'] = params['position'];
+		players[socket.custom.snakeId]['position'] = params['position'];
 	});
 
 	socket.on('disconnect', function () {
 		console.log('---> disconnect (' + this.custom.player + ')');
-		console.log(this.custom.player, 'disconnected as socket', socket.id);
-		io.sockets.in(this.custom.server).emit('player-left', this.custom.player);
-		delete players[this.custom.server][this.custom.snakeId];
-		if (Object.keys(players[this.custom.server]).length === 0) {
-			delete players[this.custom.server];
+		console.log(socket.custom.player, 'disconnected as socket', socket.id);
+		io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
+		delete players[socket.custom.server][socket.custom.snakeId];
+		if (Object.keys(players[socket.custom.server]).length === 0) {
+			delete players[socket.custom.server];
 		}
 	});
 
