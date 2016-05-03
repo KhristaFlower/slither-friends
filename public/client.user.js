@@ -15,9 +15,15 @@
 
 	/**
 	 * An element to contain the list of players and servers they are in.
-	 * @type {HTMLElement}
+	 * @type {Element}
 	 */
 	var serverList = createSlitherFriendsServerList();
+
+	/**
+	 * An element to contain the target pointers for other snakes.
+	 * @type {Element}
+	 */
+	var directionReticule;
 
 	/**
 	 * The socket is used to communicate with the Slither Friends Master Server.
@@ -61,6 +67,18 @@
 	var nextReportAfter = Date.now();
 
 	/**
+	 * The size of the arrow.
+	 * @type {number}
+	 */
+	var directionArrowSize = 10;
+
+	/**
+	 * The diameter of the reticule.
+	 * @type {number}
+	 */
+	var reticuleSize;
+
+	/**
 	 * Start the Slither Friends monitor.
 	 */
 	setInterval(slitherFriendsTick, 100);
@@ -71,7 +89,67 @@
 	 * @param payload
 	 */
 	function playerLocations(payload) {
+
+		if (!snakeExists) {
+			return;
+		}
+
 		console.log(payload);
+
+		var arrowDistance = Math.round(reticuleSize / 2);
+
+		// Clear the current reticule.
+		directionReticule.innerHTML = '';
+
+		// Populate the reticule.
+		var myLocation = {x: snake.xx, y: snake.yy};
+
+		for (var i in payload) {
+
+			// Skip ourselves, that would be silly!
+			if (i == snake.id) {
+				continue;
+			}
+
+			// Calculate the angles of snakes and positions for direction indicators.
+			var theirLocation = payload[i]['position'];
+			var angle = calculatePlayerDirectionAngle(myLocation, theirLocation);
+			var x = arrowDistance * Math.cos(angle);
+			var y = arrowDistance * Math.sin(angle);
+
+			// Create the triangle that points towards the other player.
+			createPlayerDirectionTriangle(x, y, angle);
+
+		}
+
+	}
+
+	/**
+	 * Get the angle between two locations.
+	 * @param p1 Point 1.
+	 * @param p2 Point 2.
+	 * @returns {number}
+	 */
+	function calculatePlayerDirectionAngle(p1, p2) {
+		return Math.atan2((p2.x - p1.x), (p2.y - p1.y));
+	}
+
+	function createPlayerDirectionTriangle(x, y, angle) {
+
+		// The reticule is square, we don't need a separate width and height.
+		var halfReticule = Math.round(reticuleSize / 2);
+
+		var triangle = document.createElement('div');
+		triangle.style.border = directionArrowSize + 'px solid transparent';
+		triangle.style.borderLeft = directionArrowSize + 'px solid white';
+		triangle.style.background = 'transparent';
+		triangle.style.position = 'absolute';
+		triangle.style.width = '0';
+		triangle.style.left = ((halfReticule + x) - directionArrowSize) + 'px';
+		triangle.style.top = ((halfReticule + y) - directionArrowSize) + 'px';
+		triangle.style.transform = 'rotate(' + angle + 'rad)';
+
+		directionReticule.appendChild(triangle);
 	}
 
 	/**
@@ -166,6 +244,9 @@
 				y: snake.yy
 			}
 		});
+
+		// Create the reticule.
+		directionReticule = createDirectionReticule();
 	}
 
 	/**
@@ -177,6 +258,9 @@
 		snakeDead = true;
 
 		socket.emit('stopped-playing', snakeId);
+
+		// Remove the reticule.
+		directionReticule.parentNode.removeChild(directionReticule);
 	}
 
 	/**
@@ -222,6 +306,38 @@
 		loginPage.appendChild(serverList);
 
 		return serverList;
+
+	}
+
+	/**
+	 * Get the reticule element that will contain the directional pointers.
+	 * @returns {Element}
+	 */
+	function createDirectionReticule() {
+
+		var bodyWidth = document.body.clientWidth;
+		var bodyHeight = document.body.clientHeight;
+
+		// We want the outside of the reticule to be at about 20% way from the closest edge.
+		reticuleSize = Math.round(Math.min(bodyWidth, bodyHeight) * 0.8);
+		var reticulePosition = {
+			x: Math.round((bodyWidth / 2) - (reticuleSize / 2)),
+			y: Math.round((bodyHeight / 2) - (reticuleSize / 2))
+		};
+
+		var reticule = document.createElement('div');
+		reticule.id = 'SlitherFriends-Reticule';
+		reticule.style.width = reticuleSize;
+		reticule.style.height = reticuleSize;
+		reticule.style.position = 'absolute';
+		reticule.style.left = reticulePosition.x;
+		reticule.style.top = reticulePosition.y;
+		reticule.style.background = 'rgba(0,0,0,.2)';
+		reticule.style.zIndex = '9999';
+		reticule.style.borderRadius = '1000px';
+		document.body.appendChild(reticule);
+
+		return reticule;
 
 	}
 
