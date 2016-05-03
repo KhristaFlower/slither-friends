@@ -73,7 +73,7 @@ setInterval(function() {
 	// For players on the main menu we want to show what servers players are in.
 	io.sockets.in('main-menu').emit('players-connected', playersConnected);
 
-}, 5000);
+}, 1000);
 
 io.on('connection', function (socket) {
 	console.log('---> connection', socket.id);
