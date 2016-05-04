@@ -2,7 +2,7 @@
 // @name		slither-friends
 // @author		Christopher Sharman
 // @namespace	https://slither-friends.csharman.co.uk
-// @version		0.1
+// @version		0.2
 // @description Slither with friends!
 // @downloadURL https://slither-friends.csharman.co.uk/client.user.js
 // @updateURL	https://slither-friends.csharman.co.uk/client.user.js
@@ -14,7 +14,7 @@
 (function() {
 
 	/**
-	 * An element to contain the list of players and servers they are in.
+	 * An element to contain the list of servers and servers they are in.
 	 * @type {Element}
 	 */
 	var serverList = createSlitherFriendsServerList();
@@ -85,7 +85,7 @@
 
 	/**
 	 * Triggered when the Master Server sends the current player the list of other
-	 * players using Slither Friends and their positions.
+	 * servers using Slither Friends and their positions.
 	 * @param payload
 	 */
 	function playerLocations(payload) {
@@ -93,8 +93,6 @@
 		if (!snakeExists) {
 			return;
 		}
-
-		console.log(payload);
 
 		var arrowDistance = Math.round(reticuleSize / 2);
 
@@ -118,66 +116,84 @@
 			var y = arrowDistance * Math.sin(angle);
 
 			// Create the triangle that points towards the other player.
-			createPlayerDirectionTriangle(x, y, angle);
+			createPlayerDirectionTriangle(x, y, angle, payload[i]);
 
 		}
 
 	}
 
 	/**
-	 * Get the angle between two locations.
-	 * @param p1 Point 1.
-	 * @param p2 Point 2.
-	 * @returns {number}
+	 * Create a direction arrow with player name that points towards other servers.
+	 * @param x
+	 * @param y
+	 * @param angle
+	 * @param payload
 	 */
-	function calculatePlayerDirectionAngle(p1, p2) {
-		return Math.atan2((p2.x - p1.x), (p2.y - p1.y));
-	}
-
-	function createPlayerDirectionTriangle(x, y, angle) {
+	function createPlayerDirectionTriangle(x, y, angle, payload) {
 
 		// The reticule is square, we don't need a separate width and height.
 		var halfReticule = Math.round(reticuleSize / 2);
 
 		var triangle = document.createElement('div');
 		triangle.style.border = directionArrowSize + 'px solid transparent';
-		triangle.style.borderLeft = directionArrowSize + 'px solid white';
+		triangle.style.borderBottom = directionArrowSize + 'px solid ' + payload['color'];
 		triangle.style.background = 'transparent';
 		triangle.style.position = 'absolute';
+		triangle.style.color = payload['color'];
 		triangle.style.width = '0';
+		triangle.style.height = '0';
+		triangle.style.transform = 'rotate(' + (angle + (Math.PI/2)) + 'rad)';
+
+		// Position the triangle in the reticule.
 		triangle.style.left = ((halfReticule + x) - directionArrowSize) + 'px';
 		triangle.style.top = ((halfReticule + y) - directionArrowSize) + 'px';
-		triangle.style.transform = 'rotate(' + angle + 'rad)';
+
+		// Create a nameplate so we know who is in that direction.
+		var nameplate = document.createElement('div');
+		nameplate.innerHTML = payload['player'];
+		nameplate.style.float = 'left';
+		nameplate.style.fontFamily = 'sans-serif';
+		nameplate.style.fontSize = '12px';
+		nameplate.style.transform = 'translate(-50%, 100%)';
+		if (angle > 0 && angle < Math.PI) {
+			nameplate.style.transform += ' rotate(180deg)';
+		}
+		// As a child of the triangle, the nameplate will already have the correct
+		// position and rotation.
+		triangle.appendChild(nameplate);
 
 		directionReticule.appendChild(triangle);
 	}
 
 	/**
-	 * Triggered when the Master Server sends a list of players that are connected
+	 * Triggered when the Master Server sends a list of servers that are connected
 	 * to the Master Server and are in the game. The current player must be at the
 	 * main menu to get this event.
 	 * @param payload
 	 */
 	function playersConnected(payload) {
+
 		var currentIp = (typeof bso !== 'undefined' ? bso.ip + ':' + bso.po : 'None');
 
-		var newServerList = document.createElement('div');
 		var yourServer = document.createElement('div');
 		yourServer.innerHTML = 'Your server: ' + currentIp;
+
+		var newServerList = document.createElement('div');
 		newServerList.appendChild(yourServer);
+
 		for (var ip in payload) {
-			if (!payload.hasOwnProperty(ip)) {
-				continue;
-			}
+
 			var serverName = document.createElement('div');
 			var serverJoinLink = document.createElement('a');
 			var ipAndPort = ip.split(':');
+
 			serverName.style.marginTop = '10px';
 			serverJoinLink.style.color = (ip === currentIp ? 'lime' : 'white');
 			serverJoinLink.innerHTML = ip;
 			serverJoinLink.href = 'javascript:forceServer(\'' + ipAndPort[0] + '\',' + ipAndPort[1] + ')';
 			serverName.appendChild(serverJoinLink);
 			newServerList.appendChild(serverName);
+
 			for (var player in payload[ip]) {
 				var playerName = document.createElement('div');
 				playerName.innerHTML = payload[ip][player];
@@ -239,6 +255,8 @@
 			server: bso.ip + ":" + bso.po,
 			player: snake.nk,
 			snakeId: snakeId,
+			//snake.csw (lighter), snake.cs (standard), snake.cs04 (darker) are also usable.
+			color: snake.csw,
 			position: {
 				x: snake.xx,
 				y: snake.yy
@@ -259,8 +277,8 @@
 
 		socket.emit('stopped-playing', snakeId);
 
-		// Remove the reticule.
-		directionReticule.parentNode.removeChild(directionReticule);
+		// Clear the reticule.
+		directionReticule.innerHTML = '';
 	}
 
 	/**
@@ -288,7 +306,7 @@
 	}
 
 	/**
-	 * Create an element to contain a list of servers and players on them.
+	 * Create an element to contain a list of servers and servers on them.
 	 * @returns {Element}
 	 */
 	function createSlitherFriendsServerList() {
@@ -335,6 +353,7 @@
 		reticule.style.background = 'rgba(0,0,0,.2)';
 		reticule.style.zIndex = '9999';
 		reticule.style.borderRadius = '1000px';
+		reticule.style.pointerEvents = 'none';
 		document.body.appendChild(reticule);
 
 		return reticule;
@@ -350,11 +369,21 @@
 		socket = io('https://slither-friends.csharman.co.uk');
 		socket.on('player-joined', playerJoined);
 		socket.on('player-left', playerLeft);
-		socket.on('players-connected', playersConnected);
+		socket.on('servers-connected', playersConnected);
 		socket.on('player-locations', playerLocations);
 
 		return socket;
 
+	}
+
+	/**
+	 * Get the angle between two locations.
+	 * @param p1 Point 1.
+	 * @param p2 Point 2.
+	 * @returns {number}
+	 */
+	function calculatePlayerDirectionAngle(p1, p2) {
+		return Math.atan2((p2.y - p1.y), (p2.x - p1.x));
 	}
 
 })();
