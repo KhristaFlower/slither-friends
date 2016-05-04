@@ -118,11 +118,7 @@ io.on('connection', function (socket) {
 		this.join('main-menu');
 
 		io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
-
-		delete servers[socket.custom.server][socket.custom.snakeId];
-		if (Object.keys(servers[socket.custom.server]).length === 0) {
-			delete servers[socket.custom.server];
-		}
+		removePlayer(socket.custom.server, socket.custom.snakeId);
 
 		socket.custom.snakeId = null;
 	});
@@ -141,14 +137,34 @@ io.on('connection', function (socket) {
 		// cleanup and let clients know they've left.
 		if (socket.custom.snakeId !== null) {
 			io.sockets.in(socket.custom.server).emit('player-left', socket.custom.player);
-			delete servers[socket.custom.server][socket.custom.snakeId];
-			if (Object.keys(servers[socket.custom.server]).length === 0) {
-				delete servers[socket.custom.server];
-			}
+			removePlayer(socket.custom.server, socket.custom.snakeId);
 		}
 	});
 
 });
+
+/**
+ * Remove the player from server list and perform cleanup.
+ * @param ip
+ * @param snakeId
+ */
+function removePlayer(ip, snakeId) {
+
+	if (ip in servers) {
+
+		// Remove the snake.
+		if (snakeId in servers[ip]) {
+			delete servers[ip][snakeId];
+		}
+
+		// And the server if it was the last one.
+		if (Object.keys(servers[ip]).length === 0) {
+			delete servers[ip];
+		}
+
+	}
+
+}
 
 http.listen(3000, function() {
 	console.log('listening');

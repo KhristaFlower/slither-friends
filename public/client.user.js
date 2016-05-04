@@ -2,7 +2,7 @@
 // @name		slither-friends
 // @author		Christopher Sharman
 // @namespace	https://slither-friends.csharman.co.uk
-// @version		0.2
+// @version		0.2.1
 // @description Slither with friends!
 // @downloadURL https://slither-friends.csharman.co.uk/client.user.js
 // @updateURL	https://slither-friends.csharman.co.uk/client.user.js
@@ -286,6 +286,8 @@
 	 */
 	function leftGame() {
 		console.log('SLITHER FRIENDS:', 'SNAKE LEFT');
+
+		snakeDead = false;
 
 	}
 
