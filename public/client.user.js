@@ -58,7 +58,7 @@
 	 * The interval in milliseconds that we should report the snakes location.
 	 * @type {number}
 	 */
-	var reportRefreshRate = 2000;
+	var reportRefreshRate = 250;
 
 	/**
 	 * When we pass this time we need to update the Master Server.
@@ -114,14 +114,31 @@
 				continue;
 			}
 
-			// Calculate the angles of snakes and positions for direction indicators.
 			var theirLocation = payload[i]['position'];
+
+			// If we are close enough for the slither game server to tell us about near-by
+			// snakes then we can use them to point more accurately and avoid positional
+			// data delay caused by talking to and from the Slither Friends Master Server.
+			// @TODO: Identify when snakes are close enough for us to know about them and
+			// @TODO: constantly update arrow position to show a smooth directional indicator.
+			for (var s in snakes) {
+				if (snakes[s].id == payload[i].id) {
+					// The player is near us, lets use the fresh positional data.
+					theirLocation = {x: snakes[i].xx, y: snakes[i].yy};
+					break;
+				}
+			}
+
+
+			// Calculate the angles of snakes and positions for direction indicators.
 			var angle = calculatePlayerDirectionAngle(myLocation, theirLocation);
 			var x = arrowDistance * Math.cos(angle);
 			var y = arrowDistance * Math.sin(angle);
 
+			var playerDistance = calculatePlayerDistance(myLocation, theirLocation);
+
 			// Create the triangle that points towards the other player.
-			createPlayerDirectionTriangle(x, y, angle, payload[i]);
+			createPlayerDirectionTriangle(x, y, angle, payload[i], playerDistance);
 
 		}
 
@@ -133,8 +150,9 @@
 	 * @param y
 	 * @param angle
 	 * @param payload
+	 * @param distance
 	 */
-	function createPlayerDirectionTriangle(x, y, angle, payload) {
+	function createPlayerDirectionTriangle(x, y, angle, payload, distance) {
 
 		// The reticule is square, we don't need a separate width and height.
 		var halfReticule = Math.round(reticuleSize / 2);
@@ -155,7 +173,7 @@
 
 		// Create a nameplate so we know who is in that direction.
 		var nameplate = document.createElement('div');
-		nameplate.innerHTML = payload['player'];
+		nameplate.innerHTML = payload['player'] + '(' + Math.round(distance) + ')';
 		nameplate.style.float = 'left';
 		nameplate.style.fontFamily = 'sans-serif';
 		nameplate.style.fontSize = '12px';
@@ -412,6 +430,18 @@
 	 */
 	function calculatePlayerDirectionAngle(p1, p2) {
 		return Math.atan2((p2.y - p1.y), (p2.x - p1.x));
+	}
+
+	/**
+	 * Get the distance between two points.
+	 * @param p1 Point 1.
+	 * @param p2 Point 2.
+	 * @returns {number}
+	 */
+	function calculatePlayerDistance(p1, p2) {
+		var x = p1.x - p2.x;
+		var y = p1.y - p2.y;
+		return Math.sqrt((x * x) + (y * y));
 	}
 
 })();
