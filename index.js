@@ -25,7 +25,8 @@ function displayConnectedPlayers() {
 	for (var ip in servers) {
 		console.log('> ' + ip);
 		for (var snakeId in servers[ip]) {
-			console.log(' > ' + servers[ip][snakeId]['player']);
+			var loc = servers[i][snakeId]['position'];
+			console.log(' > ' + servers[i][snakeId]['player'] + '(' + loc['x'] + ',' + loc['y'] + ')');
 		}
 	}
 }
@@ -124,10 +125,10 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('player-update', function (params) {
-		if (!(this.custom.snakeId in servers)) {
+		if (!(this.custom.server in servers) || !(this.custom.snakeId in servers[this.custom.server])) {
 			return;
 		}
-		servers[socket.custom.snakeId]['position'] = params['position'];
+		servers[socket.custom.server][socket.custom.snakeId]['position'] = params['position'];
 	});
 
 	socket.on('disconnect', function () {
