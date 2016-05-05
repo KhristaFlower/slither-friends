@@ -84,6 +84,11 @@
 	setInterval(slitherFriendsTick, 100);
 
 	/**
+	 * Add a resize event listener to adjust the reticule when the page size is changed.
+	 */
+	window.addEventListener('resize', slitherResize);
+
+	/**
 	 * Triggered when the Master Server sends the current player the list of other
 	 * servers using Slither Friends and their positions.
 	 * @param payload
@@ -336,6 +341,26 @@
 	 */
 	function createDirectionReticule() {
 
+		var reticule = document.createElement('div');
+		reticule.id = 'SlitherFriends-Reticule';
+		reticule.style.position = 'absolute';
+		reticule.style.zIndex = '9999';
+		reticule.style.background = 'rgba(0,0,0,.2)';
+		reticule.style.borderRadius = '1000px';
+		reticule.style.pointerEvents = 'none';
+		positionReticule(reticule);
+		document.body.appendChild(reticule);
+
+		return reticule;
+
+	}
+
+	/**
+	 * Position the reticule in the center of the screen.
+	 * @param reticule
+	 */
+	function positionReticule(reticule) {
+
 		var bodyWidth = document.body.clientWidth;
 		var bodyHeight = document.body.clientHeight;
 
@@ -346,20 +371,20 @@
 			y: Math.round((bodyHeight / 2) - (reticuleSize / 2))
 		};
 
-		var reticule = document.createElement('div');
-		reticule.id = 'SlitherFriends-Reticule';
 		reticule.style.width = reticuleSize;
 		reticule.style.height = reticuleSize;
-		reticule.style.position = 'absolute';
 		reticule.style.left = reticulePosition.x;
 		reticule.style.top = reticulePosition.y;
-		reticule.style.background = 'rgba(0,0,0,.2)';
-		reticule.style.zIndex = '9999';
-		reticule.style.borderRadius = '1000px';
-		reticule.style.pointerEvents = 'none';
-		document.body.appendChild(reticule);
+	}
 
-		return reticule;
+	/**
+	 * Fired when the page size is changed.
+	 */
+	function slitherResize() {
+
+		if (snakeExists && !snakeDead) {
+			positionReticule(directionReticule);
+		}
 
 	}
 
