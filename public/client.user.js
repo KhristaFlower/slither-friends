@@ -278,7 +278,8 @@
 		socket.emit('stopped-playing', snakeId);
 
 		// Clear the reticule.
-		directionReticule.innerHTML = '';
+		var removeMe = document.getElementById('SlitherFriends-Reticule');
+		removeMe.parentNode.removeChild(removeMe);
 	}
 
 	/**
